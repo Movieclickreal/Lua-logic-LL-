@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Roblox Lua Learning</title>
+  <style>
+   body {
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #000033, #000066); /* Black and blue gradient */
+  gap: 20px;
+  padding: 20px;
+  color: #ffffff; /* Set default text color to white */
+  flex-direction: column;
+}
+
+.container {
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  gap: 40px;
+}
+    .code-area {
+      flex: 2;
+    }
+
+    h1 {
+      color: #ffffff;
+      margin-bottom: 20px;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      font-size: 2.5em;
+    }
+
+    .code-input {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .code-input textarea {
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border: 2px solid #007bff;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      font-family: 'Courier New', monospace;
+      resize: vertical;
+      min-height: 200px;
+      color: #ffffff;
+      font-size: 1.1em;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .code-input button {
+      padding: 12px 20px;
+      background: linear-gradient(to right, #007bff, #0056b3);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      align-self: center;
+      width: 180px;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .code-input button:hover {
+      background: linear-gradient(to right, #0056b3, #007bff);
+      transform: translateY(-3px);
+    }
+
+    #code-explanation {
+      background-color: rgba(0, 0, 0, 0.7);
+      border: 1px solid #007bff;
+      border-radius: 8px;
+      padding: 25px;
+      white-space: pre-line;
+      text-align: left;
+      color: #ffffff;
+      font-size: 1.1em;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    #code-explanation.loading {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 0.7;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.7;
+      }
+    }
+
+    .version {
+      text-align: center;
+      font-size: 0.9em;
+      color: #ffffff;
+      margin-top: 30px;
+      position: relative;
+    }
+
+    .version::before {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 1px;
+      background-color: rgba(255, 255, 255, 0.2);
+      position: absolute;
+      top: -15px;
+    }
+
+    .sidebar {
+      flex: 1;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      max-height: 600px; /* Set a maximum height */
+      overflow-y: auto; /* Add vertical scroll */
+    }
+
+    .sidebar h2 {
+      color: #ffffff;
+      margin-bottom: 15px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      font-size: 1.8em;
+    }
+
+    .sidebar code {
+      display: block;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-family: 'Courier New', monospace;
+      color: #ffffff;
+      font-size: 1.05em;
+      white-space: pre-wrap; /* Allow wrapping for long lines */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="code-area">
+      <h1>LL by movieclick</h1>
+      <div class="code-input">
+        <textarea id="lua-code">
+-- Enter your Lua code here
+        </textarea>
+        <button id="explain-button">Explain</button>
+      </div>
+      <div id="code-explanation"></div>
+      <div class="version">v0.03 (updated 10/24/24)</div> 
+    </div>
+    <div class="sidebar">
+      <h2>Lua Code Examples</h2>
+      
+      <code>-- Variables</code>
+      <code>local myVariable = 10</code>
+      <code>local myString = "Hello"</code>
+
+      <code>-- Printing</code>
+      <code>print("Hello, world!")</code>
+      <code>print(myVariable)</code>
+
+      <code>-- Functions</code>
+      <code>function greetPlayer(playerName)</code>
+      <code>  print("Hello, " .. playerName)</code>
+      <code>end</code>
+
+      <code>-- Tables</code>
+      <code>local inventory = {"Sword", "Shield", "Potion"}</code>
+      <code>print(inventory[1]) -- Outputs "Sword"</code>
+
+      <code>-- Control Structures</code>
+      <code>-- If statement</code>
+      <code>local health = 50</code>
+      <code>if health &gt; 0 then</code> 
+      <code>  print("Player is alive")</code>
+      <code>else</code>
+      <code>  print("Player is dead")</code>
+      <code>end</code>
+
+      <code>-- While loop</code>
+      <code>local i = 1</code>
+      <code>while i &lt;= 10 do</code>
+      <code>  print(i)</code>
+      <code>  i = i + 1</code>
+      <code>end</code>
+
+      <code>-- For loop</code>
+      <code>for i = 1, 5 do</code>
+      <code>  print(i)</code>
+      <code>end</code>
+
+      <code>-- Events</code>
+      <code>local player = game.Players.LocalPlayer</code>
+      <code>player.Chatted:Connect(function(message)</code>
+      <code>  print(player.Name .. " said: " .. message)</code>
+      <code>end)</code>
+
+      <code>-- Object-Oriented Programming</code>
+      <code>Player = {}</code>
+      <code>Player.__index = Player</code>
+      <code>function Player:new(name)</code>
+      <code>  local instance = setmetatable({}, Player)</code>
+      <code>  instance.name = name</code>
+      <code>  return instance</code>
+      <code>end</code>
+      <code>function Player:greet()</code>
+      <code>  print("Hello, " .. self.name)</code>
+      <code>end</code>
+      <code>local player1 = Player:new("Alex")</code>
+      <code>player1:greet() -- Outputs "Hello, Alex"</code>
+
+      <code>-- Modules</code>
+      <code>-- ModuleScript in ServerScriptService</code>
+      <code>local MyModule = {}</code>
+      <code>function MyModule.greet()</code>
+      <code>  print("Hello from the module!")</code>
+      <code>end</code>
+      <code>return MyModule</code>
+      <code>-- In another script</code>
+      <code>local MyModule = require(game.ServerScriptService.MyModule)</code>
+      <code>MyModule.greet() -- Outputs "Hello from the module!"</code>
+    </div>
+  </div>
+  <script>
+  const explainButton = document.getElementById('explain-button');
+const codeExplanation = document.getElementById('code-explanation');
+const luaCodeInput = document.getElementById('lua-code');
+
+// Auto-completion
+luaCodeInput.addEventListener('keydown', (event) => {
+  const code = luaCodeInput.value;
+  const cursorPos = luaCodeInput.selectionStart;
+
+  if (event.key === '(') {
+    event.preventDefault();
+    luaCodeInput.value = code.substring(0, cursorPos) + '()' + code.substring(cursorPos);
+    luaCodeInput.selectionStart = luaCodeInput.selectionEnd = cursorPos + 1;
+  } else if (event.key === '"') {
+    event.preventDefault();
+    luaCodeInput.value = code.substring(0, cursorPos) + '""' + code.substring(cursorPos);
+    luaCodeInput.selectionStart = luaCodeInput.selectionEnd = cursorPos + 1;
+  }
+});
+
+explainButton.addEventListener('click', () => {
+  const luaCode = luaCodeInput.value.trim();
+  codeExplanation.innerHTML = "";
+  codeExplanation.classList.add("loading");
+
+  setTimeout(() => {
+    codeExplanation.classList.remove("loading");
+    let explanation = "";
+
+    // Code analysis and explanation
+    if (luaCode.includes('game.Players.PlayerAdded:Connect(function(player)')) {
+      explanation += "This code sets up a function that will be called every time a new player joins the game. ";
+      explanation += "The `player` variable represents the player who just joined. This is often used to set up initial values or objects for the player.<br><br>";
+
+      if (luaCode.includes('Instance.new("Folder")') && luaCode.includes('.Name = "leaderstats"')) {
+        explanation += "Inside the function, a new Folder named 'leaderstats' is created and placed inside the player object. ";
+        explanation += "This is a standard way to store and display player statistics in Roblox.<br><br>";
+      }
+    } else if (luaCode.match(/local\s+([a-zA-Z0-9_]+)\s*=\s*(.*)/)) {
+      const match = luaCode.match(/local\s+([a-zA-Z0-9_]+)\s*=\s*(.*)/);
+      const variableName = match[1];
+      const value = match[2];
+      explanation = `This code creates a new local variable named <b>${variableName}</b> and assigns it the initial value <b>${value}</b>. `;
+      explanation += "Local variables can only be accessed within the code block where they are defined.<br><br>";
+
+      if (value.match(/^[0-9]+$/)) {
+        explanation += "The value assigned is a number.";
+      } else if (value.match(/^".*"$/)) {
+        explanation += "The value assigned is a string (text).";
+      } else if (value.match(/^[a-zA-Z0-9_.]+$/)) {
+        explanation += "The value assigned seems to be another variable or a property of an object.";
+      }
+    } else if (luaCode.match(/^[a-zA-Z0-9_.]+\s*=\s*(.*)$/)) {
+      const parts = luaCode.split('=');
+      const variable = parts[0].trim();
+      const value = parts[1].trim();
+      explanation = `This code assigns the value <b>${value}</b> to the variable or property <b>${variable}</b>.<br><br>`;
+
+      if (value.match(/^[0-9]+$/)) {
+        explanation += "The value assigned is a number.";
+      } else if (value.match(/^".*"$/)) {
+        explanation += "The value assigned is a string (text).";
+      } else if (value.match(/^[a-zA-Z0-9_.]+$/)) {
+        explanation += "The value assigned seems to be another variable or a property of an object.";
+      }
+    } else if (luaCode.match(/^[a-zA-Z0-9_.]+\s*\+=\s*(.*)$/)) {
+      const parts = luaCode.split('+=');
+      const variable = parts[0].trim();
+      const value = parts[1].trim();
+      explanation = `This code adds <b>${value}</b> to the current value of the variable <b>${variable}</b>.<br><br>`;
+      explanation += `For example, if <b>${variable}</b> is a number with the value 10, after this code runs, it will have the value ${10 + parseInt(value)}.`;
+    } else if (luaCode.match(/^[a-zA-Z0-9_.]+\s*\(.*\)$/)) {
+      const parts = luaCode.split('(');
+      const functionName = parts[0].trim();
+      const args = parts[1].slice(0, -1).trim();
+      explanation = `This code calls the function <b>${functionName}</b>. `;
+      if (args) {
+        explanation += `It passes the following arguments to the function: <b>${args}</b>.<br><br>`;
+      }
+
+      // Add explanations for specific functions
+      if (functionName === "print") {
+        explanation += "The <b>print()</b> function displays the arguments you give it in the output. This is useful for debugging or showing messages to the player.";
+      } else if (functionName === "Instance.new") {
+        explanation += "The <b>Instance.new()</b> function creates a new Roblox object. The type of object created depends on the argument passed to the function (e.g., 'Part', 'Folder', 'IntValue').";
+      } // Add more function explanations here...
+
+      else {
+        explanation += "To understand what this function does, you'll need to look up its documentation or understand the context where it's used.";
+      }
+    } else if (luaCode.trim().startsWith("--")) {
+      explanation = "This is a comment. Comments are ignored by the computer and are used to explain the code to humans.";
+    } else if (luaCode.includes("function")) {
+      const match = luaCode.match(/function\s+([a-zA-Z0-9_]+)\s*\((.*)\)/);
+      if (match) {
+        const functionName = match[1];
+        const parameters = match[2];
+        explanation = `This code defines a function named <b>${functionName}</b>. `;
+        if (parameters) {
+          explanation += `It accepts these parameters: <b>${parameters}</b>. `;
+        }
+        explanation += "Functions are blocks of code that can be reused multiple times. They can accept input values (parameters) and return output values.";
+      } else {
+        explanation = "This code seems to be defining a function, but I couldn't fully understand it.";
+      }
+    } else if (luaCode.includes("if")) {
+      explanation = "This code uses an 'if' statement to make a decision. It checks if a condition is true, and if it is, it executes a block of code.";
+    } else if (luaCode.includes("while")) {
+      explanation = "This code uses a 'while' loop to repeat a block of code as long as a condition is true.";
+    } else if (luaCode.includes("for")) {
+      explanation = "This code uses a 'for' loop to repeat a block of code a specific number of times.";
+    } else if (luaCode.includes(":Connect(function(")) {
+      explanation = "This code connects a function to an event. When the event happens, the connected function will be called.";
+    } else if (luaCode.match(/^[a-zA-Z0-9_.]+\[[0-9]+\]$/)) {
+      explanation = "This code accesses an element in a table (like an array) using its index.";
+    } else if (luaCode.match(/setmetatable\((.*)\)/)) {
+      explanation = "This code sets the metatable of a table. Metatables are used for object-oriented programming in Lua.";
+    } else if (luaCode.includes("require")) {
+      explanation = "This code uses the 'require' function to load a module. Modules are used to organize code and reuse it in different parts of your project.";
+    } else {
+      explanation = "Sorry, I can't fully explain that code yet. I'm still learning!";
+    }
+
+    codeExplanation.innerHTML = explanation;
+  }, 1000);
+});
+  </script>
+</body>
+</html>
