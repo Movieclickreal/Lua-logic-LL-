@@ -3,29 +3,30 @@
 <head>
   <title>(LL) Lua Logic </title>
   <style>
-   body {
-  font-family: 'Arial', sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  background: linear-gradient(to bottom, #000033, #000066); /* Black and blue gradient */
-  gap: 20px;
-  padding: 20px;
-  color: #ffffff; /* Set default text color to white */
-  flex-direction: column;
-}
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      background: linear-gradient(to bottom, #000033, #000066); 
+      gap: 20px;
+      padding: 20px;
+      color: #ffffff; 
+      flex-direction: column;
+    }
 
-.container {
-  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
-  padding: 30px 40px;
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-  max-width: 1200px;
-  width: 100%;
-  display: flex;
-  gap: 40px;
-}
+    .container {
+      background-color: rgba(255, 255, 255, 0.1); 
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+      max-width: 1200px;
+      width: 100%;
+      display: flex;
+      gap: 40px;
+    }
+
     .code-area {
       flex: 2;
     }
@@ -58,6 +59,7 @@
       color: #ffffff;
       font-size: 1.1em;
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+      white-space: pre-wrap; /* Preserve line breaks and spaces */
     }
 
     .code-input button {
@@ -89,6 +91,7 @@
       color: #ffffff;
       font-size: 1.1em;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      overflow-x: auto; /* Add horizontal scroll for long lines */
     }
 
     #code-explanation.loading {
@@ -133,8 +136,8 @@
       border-radius: 15px;
       padding: 30px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      max-height: 600px; /* Set a maximum height */
-      overflow-y: auto; /* Add vertical scroll */
+      max-height: 600px; 
+      overflow-y: auto; 
     }
 
     .sidebar h2 {
@@ -153,8 +156,21 @@
       font-family: 'Courier New', monospace;
       color: #ffffff;
       font-size: 1.05em;
-      white-space: pre-wrap; /* Allow wrapping for long lines */
+      white-space: pre-wrap; 
     }
+
+    /* Syntax Highlighting */
+    .code-input textarea .keyword { 
+      color: red; 
+    }
+    .code-input textarea .comment { 
+      color: green; 
+    }
+    .code-input textarea .string { 
+      color: blue; 
+    }
+    /* Add more styles for other token types as needed */
+
   </style>
 </head>
 <body>
@@ -193,7 +209,7 @@
       <code>-- Control Structures</code>
       <code>-- If statement</code>
       <code>local health = 50</code>
-      <code>if health &gt; 0 then</code> 
+      <code>if health &gt; 0 then </code> 
       <code>  print("Player is alive")</code>
       <code>else</code>
       <code>  print("Player is dead")</code>
@@ -243,132 +259,261 @@
       <code>MyModule.greet() -- Outputs "Hello from the module!"</code>
     </div>
   </div>
+
   <script>
-  const explainButton = document.getElementById('explain-button');
+    const explainButton = document.getElementById('explain-button');
 const codeExplanation = document.getElementById('code-explanation');
 const luaCodeInput = document.getElementById('lua-code');
+
+// Custom Lua Parser
+function parseLua(code) {
+  const tokens = [];
+  const variables = [];
+  const functions = [];
+  const functionCalls = [];
+  const ifStatements = [];
+  const loops = [];
+  const comments = [];
+  const strings = [];
+
+  let currentToken = "";
+  let inString = false;
+  let inComment = false;
+  let stringDelimiter = "";
+
+  // Helper function to add a token and reset currentToken
+  function addToken(token) {
+    if (token !== "") {
+      tokens.push(token);
+      currentToken = "";
+    }
+  }
+
+  for (let i = 0; i < code.length; i++) {
+    const char = code[i];
+
+    if (inString) {
+      currentToken += char;
+      if (char === stringDelimiter) {
+        inString = false;
+        addToken(currentToken);
+        strings.push(currentToken);
+      }
+    } else if (inComment) {
+      if (char === "\n") {
+        inComment = false;
+        comments.push(currentToken);
+        currentToken = "";
+      } else {
+        currentToken += char;
+      }
+    } else {
+      if (char === '"' || char === "'") {
+        inString = true;
+        stringDelimiter = char;
+        currentToken += char;
+      } else if (char === "-" && code[i + 1] === "-") {
+        inComment = true;
+        addToken(currentToken); // Add any token before the comment
+        currentToken = "--";
+        i++;
+      } else if (/\s/.test(char)) {
+        addToken(currentToken);
+      } else {
+        currentToken += char;
+      }
+    }
+  }
+
+  addToken(currentToken); // Add the last token
+
+  // Improved code analysis
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token === "local" && tokens[i + 1] && tokens[i + 2] === "=") {
+      variables.push({ name: tokens[i + 1], type: "local" });
+    } else if (token === "function" && tokens[i + 1] && tokens[i + 2] === "(") {
+      let functionName = tokens[i + 1];
+      let params = "";
+      let parenCount = 1;
+      i += 3; // Move to the first parameter (or ')' if no parameters)
+      while (i < tokens.length && parenCount > 0) {
+        if (tokens[i] === "(") parenCount++;
+        if (tokens[i] === ")") parenCount--;
+        if (parenCount > 0) params += tokens[i] + " ";
+        i++;
+      }
+      functions.push({ name: functionName, params: params.trim() });
+    } else if (token.match(/^[a-zA-Z0-9_.]+\s*\(.*\)$/)) {
+      functionCalls.push(token.split('(')[0].trim());
+    } else if (token === "if") {
+      ifStatements.push(token);
+    } else if (token === "for" || token === "while") {
+      loops.push(token);
+    }
+  }
+
+  return { tokens, variables, functions, functionCalls, ifStatements, loops, comments, strings };
+}
 
 // Auto-completion
 luaCodeInput.addEventListener('keydown', (event) => {
   const code = luaCodeInput.value;
   const cursorPos = luaCodeInput.selectionStart;
 
-  if (event.key === '(') {
+  const openChars = ['(', '{', '[', '"', "'"];
+  const closeChars = [')', '}', ']', '"', "'"];
+  const keywords = ["if", "then", "else", "elseif", "end", "function", "local", "for", "while", "do", "repeat", "until", "return"];
+
+  let insertText = "";
+  let moveCursor = 0;
+
+  if (openChars.includes(event.key)) {
+    insertText = event.key + closeChars[openChars.indexOf(event.key)];
+    moveCursor = 1;
+  } else if (keywords.includes(event.key)) {
+    insertText = event.key + " ";
+  } else if (event.key === "Tab") {
     event.preventDefault();
-    luaCodeInput.value = code.substring(0, cursorPos) + '()' + code.substring(cursorPos);
-    luaCodeInput.selectionStart = luaCodeInput.selectionEnd = cursorPos + 1;
-  } else if (event.key === '"') {
+    insertText = "  ";
+  }
+
+  // Context-aware auto-completion
+  const currentLine = code.substring(0, cursorPos).split("\n").pop();
+  if (currentLine.trim().startsWith("if") && event.key === "Enter") {
+    insertText += "then\n  \nend";
+    moveCursor = 5;
+  } else if (currentLine.trim().startsWith("function") && event.key === "Enter") {
+    insertText += "\n  \nend";
+    moveCursor = 3;
+  } else if (currentLine.trim().startsWith("for") && event.key === "Enter") {
+    insertText += "\ndo\n  \nend";
+    moveCursor = 3;
+  } else if (currentLine.trim().startsWith("while") && event.key === "Enter") {
+    insertText += "\ndo\n  \nend";
+    moveCursor = 3;
+  }
+
+  if (insertText) {
     event.preventDefault();
-    luaCodeInput.value = code.substring(0, cursorPos) + '""' + code.substring(cursorPos);
-    luaCodeInput.selectionStart = luaCodeInput.selectionEnd = cursorPos + 1;
+    luaCodeInput.value = code.substring(0, cursorPos) + insertText + code.substring(cursorPos);
+    luaCodeInput.selectionStart = luaCodeInput.selectionEnd = cursorPos + moveCursor;
   }
 });
 
+// Explain button click handler
 explainButton.addEventListener('click', () => {
   const luaCode = luaCodeInput.value.trim();
   codeExplanation.innerHTML = "";
   codeExplanation.classList.add("loading");
 
+  // Simulate asynchronous parsing (for demonstration)
   setTimeout(() => {
     codeExplanation.classList.remove("loading");
-    let explanation = "";
+    try {
+      const parsedCode = parseLua(luaCode);
+      let explanation = explainCode(parsedCode);
+      codeExplanation.innerHTML = explanation;
+    } catch (error) {
+      codeExplanation.innerHTML = "Error parsing Lua code: " + error.message;
+    }
+  }, 500);
+});
 
-    // Code analysis and explanation
-    if (luaCode.includes('game.Players.PlayerAdded:Connect(function(player)')) {
-      explanation += "This code sets up a function that will be called every time a new player joins the game. ";
-      explanation += "The `player` variable represents the player who just joined. This is often used to set up initial values or objects for the player.<br><br>";
+// Function to generate explanations based on parsed code
+function explainCode(parsedCode) {
+  let explanation = "";
 
-      if (luaCode.includes('Instance.new("Folder")') && luaCode.includes('.Name = "leaderstats"')) {
-        explanation += "Inside the function, a new Folder named 'leaderstats' is created and placed inside the player object. ";
-        explanation += "This is a standard way to store and display player statistics in Roblox.<br><br>";
-      }
-    } else if (luaCode.match(/local\s+([a-zA-Z0-9_]+)\s*=\s*(.*)/)) {
-      const match = luaCode.match(/local\s+([a-zA-Z0-9_]+)\s*=\s*(.*)/);
-      const variableName = match[1];
-      const value = match[2];
-      explanation = `This code creates a new local variable named <b>${variableName}</b> and assigns it the initial value <b>${value}</b>. `;
-      explanation += "Local variables can only be accessed within the code block where they are defined.<br><br>";
+  // Example explanations (can be significantly improved)
+  if (parsedCode.functionCalls.includes("print")) {
+    explanation += "<p>This code uses the <code>print()</code> function to display output to the console. This is helpful for debugging and showing information.</p>";
+  }
 
-      if (value.match(/^[0-9]+$/)) {
-        explanation += "The value assigned is a number.";
-      } else if (value.match(/^".*"$/)) {
-        explanation += "The value assigned is a string (text).";
-      } else if (value.match(/^[a-zA-Z0-9_.]+$/)) {
-        explanation += "The value assigned seems to be another variable or a property of an object.";
-      }
-    } else if (luaCode.match(/^[a-zA-Z0-9_.]+\s*=\s*(.*)$/)) {
-      const parts = luaCode.split('=');
-      const variable = parts[0].trim();
-      const value = parts[1].trim();
-      explanation = `This code assigns the value <b>${value}</b> to the variable or property <b>${variable}</b>.<br><br>`;
+  if (parsedCode.functions.length > 0) {
+    explanation += "<p>This code defines the following function(s): ";
+    parsedCode.functions.forEach(func => {
+      explanation += `<code>${func.name}(${func.params})</code> `;
+    });
+    explanation += ". Functions are reusable blocks of code that can perform specific tasks.</p>";
+  }
 
-      if (value.match(/^[0-9]+$/)) {
-        explanation += "The value assigned is a number.";
-      } else if (value.match(/^".*"$/)) {
-        explanation += "The value assigned is a string (text).";
-      } else if (value.match(/^[a-zA-Z0-9_.]+$/)) {
-        explanation += "The value assigned seems to be another variable or a property of an object.";
-      }
-    } else if (luaCode.match(/^[a-zA-Z0-9_.]+\s*\+=\s*(.*)$/)) {
-      const parts = luaCode.split('+=');
-      const variable = parts[0].trim();
-      const value = parts[1].trim();
-      explanation = `This code adds <b>${value}</b> to the current value of the variable <b>${variable}</b>.<br><br>`;
-      explanation += `For example, if <b>${variable}</b> is a number with the value 10, after this code runs, it will have the value ${10 + parseInt(value)}.`;
-    } else if (luaCode.match(/^[a-zA-Z0-9_.]+\s*\(.*\)$/)) {
-      const parts = luaCode.split('(');
-      const functionName = parts[0].trim();
-      const args = parts[1].slice(0, -1).trim();
-      explanation = `This code calls the function <b>${functionName}</b>. `;
-      if (args) {
-        explanation += `It passes the following arguments to the function: <b>${args}</b>.<br><br>`;
-      }
+  if (parsedCode.variables.length > 0) {
+    explanation += "<p>This code defines the following variable(s): ";
+    parsedCode.variables.forEach(variable => {
+      explanation += `<code>${variable.name}</code> (${variable.type}) `;
+    });
+    explanation += ". Variables are used to store data.</p>";
+  }
 
-      // Add explanations for specific functions
-      if (functionName === "print") {
-        explanation += "The <b>print()</b> function displays the arguments you give it in the output. This is useful for debugging or showing messages to the player.";
-      } else if (functionName === "Instance.new") {
-        explanation += "The <b>Instance.new()</b> function creates a new Roblox object. The type of object created depends on the argument passed to the function (e.g., 'Part', 'Folder', 'IntValue').";
-      } // Add more function explanations here...
+  if (parsedCode.ifStatements.length > 0) {
+    explanation += "<p>This code uses <code>if</code> statements to make decisions. It executes a block of code only if a certain condition is true.</p>";
+  }
 
-      else {
-        explanation += "To understand what this function does, you'll need to look up its documentation or understand the context where it's used.";
-      }
-    } else if (luaCode.trim().startsWith("--")) {
-      explanation = "This is a comment. Comments are ignored by the computer and are used to explain the code to humans.";
-    } else if (luaCode.includes("function")) {
-      const match = luaCode.match(/function\s+([a-zA-Z0-9_]+)\s*\((.*)\)/);
-      if (match) {
-        const functionName = match[1];
-        const parameters = match[2];
-        explanation = `This code defines a function named <b>${functionName}</b>. `;
-        if (parameters) {
-          explanation += `It accepts these parameters: <b>${parameters}</b>. `;
-        }
-        explanation += "Functions are blocks of code that can be reused multiple times. They can accept input values (parameters) and return output values.";
+  if (parsedCode.loops.includes("for")) {
+    explanation += "<p>This code uses a <code>for</code> loop to repeat a block of code a specific number of times.</p>";
+  }
+
+  if (parsedCode.loops.includes("while")) {
+    explanation += "<p>This code uses a <code>while</code> loop to repeat a block of code as long as a condition is true.</p>";
+  }
+
+  // Add more explanations based on parsedCode.tokens, parsedCode.variables, etc.
+  if (parsedCode.comments.length > 0) {
+    explanation += "<p>This code includes comments (lines starting with '--') to explain the code to humans. Comments are ignored by the computer.</p>";
+  }
+
+  if (parsedCode.strings.length > 0) {
+    explanation += "<p>This code uses string literals (text enclosed in quotes) to represent text data.</p>";
+  }
+
+  if (explanation === "") {
+    explanation = "<p>I'm still learning to understand Lua code. Try entering some basic code, and I'll do my best to explain it!</p>";
+  }
+
+  return explanation;
+}
+
+// Real-time feedback with syntax highlighting
+luaCodeInput.addEventListener('input', () => {
+  const luaCode = luaCodeInput.value;
+
+  try {
+    const parsedCode = parseLua(luaCode);
+
+    // Highlight code
+    let highlightedCode = "";
+    let lastIndex = 0;
+    for (let i = 0; i < parsedCode.tokens.length; i++) {
+      const token = parsedCode.tokens[i];
+      const tokenIndex = luaCode.indexOf(token, lastIndex);
+
+      highlightedCode += luaCode.substring(lastIndex, tokenIndex);
+
+      if (token === "local") {
+        highlightedCode += `<span class="keyword">${token}</span>`;
+      } else if (token.startsWith("--")) {
+        highlightedCode += `<span class="comment">${token}</span>`;
+      } else if (token.startsWith('"') || token.startsWith("'")) {
+        highlightedCode += `<span class="string">${token}</span>`;
       } else {
-        explanation = "This code seems to be defining a function, but I couldn't fully understand it.";
+        highlightedCode += token;
       }
-    } else if (luaCode.includes("if")) {
-      explanation = "This code uses an 'if' statement to make a decision. It checks if a condition is true, and if it is, it executes a block of code.";
-    } else if (luaCode.includes("while")) {
-      explanation = "This code uses a 'while' loop to repeat a block of code as long as a condition is true.";
-    } else if (luaCode.includes("for")) {
-      explanation = "This code uses a 'for' loop to repeat a block of code a specific number of times.";
-    } else if (luaCode.includes(":Connect(function(")) {
-      explanation = "This code connects a function to an event. When the event happens, the connected function will be called.";
-    } else if (luaCode.match(/^[a-zA-Z0-9_.]+\[[0-9]+\]$/)) {
-      explanation = "This code accesses an element in a table (like an array) using its index.";
-    } else if (luaCode.match(/setmetatable\((.*)\)/)) {
-      explanation = "This code sets the metatable of a table. Metatables are used for object-oriented programming in Lua.";
-    } else if (luaCode.includes("require")) {
-      explanation = "This code uses the 'require' function to load a module. Modules are used to organize code and reuse it in different parts of your project.";
-    } else {
-      explanation = "I dont understand this code... Could be that the code is incorrect. Or maybe because im still learning!";
+
+      lastIndex = tokenIndex + token.length;
     }
 
-    codeExplanation.innerHTML = explanation;
-  }, 1000);
+    highlightedCode += luaCode.substring(lastIndex);
+
+    // Update the code area with highlighted code and explanation
+    codeExplanation.innerHTML = highlightedCode;
+
+    // Generate and display the explanation
+    let explanation = explainCode(parsedCode);
+    codeExplanation.innerHTML += `<div id="explanation">${explanation}</div>`; // Add explanation
+
+  } catch (error) {
+    codeExplanation.innerHTML = "Error parsing Lua code.";
+  }
 });
   </script>
 </body>
